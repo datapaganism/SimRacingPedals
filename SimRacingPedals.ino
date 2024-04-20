@@ -5,7 +5,7 @@
 #define dt 20
 #define sck 21
 
-const size_t multisampling = 1;
+const size_t multisampling = 5;
 const size_t adc_bits = 12;
 const int adc_max = (1 << adc_bits) -1;
 
@@ -29,7 +29,7 @@ int throttle_init_reading = 0;
 
 
 void setup() {
-  Serial.begin(115200);
+  // Serial.begin(115200);
 
   analogReadResolution(adc_bits);
 
@@ -74,7 +74,11 @@ int readAnalogPedal(const PEDALS pin, const bool invert, const char print_char, 
     map_begin = adc_max;
     map_end = 0;
   }
-  int read_scaled = map(read_raw, map_begin, map_end, joystick_min_range, joystick_max_range);
+  int read_scaled = map(read_raw, map_begin, 375, joystick_min_range, joystick_max_range);
+  if (read_scaled > joystick_max_range)
+  {
+    read_scaled = joystick_max_range;
+  }
 
   sprintf(buffer, "%c: %i\t %i\n", print_char, read_raw, read_scaled);
   // Serial.print(buffer);
@@ -95,8 +99,8 @@ int readBrakePedal() {
   }
   int read_scaled = map(read_raw, 0, brake_load_cell_max_reading, joystick_min_range, joystick_max_range);
 
-  sprintf(buffer, "B: %i\t %i\n", read_raw, read_scaled);
-  // Serial.print(buffer);
+  // sprintf(buffer, "B: %i\t %i\n", read_raw, read_scaled);
+  Serial.print(buffer);
 
   return read_scaled;
 }
@@ -107,7 +111,7 @@ void loop() {
 
   Joystick.Z(readAnalogPedal(PEDALS::throttle, false, 'A', throttle_init_reading));
   Joystick.Zrotate(readBrakePedal());
-  Joystick.slider(readAnalogPedal(PEDALS::clutch, false, 'C', clutch_init_reading));
+  // Joystick.slider(readAnalogPedal(PEDALS::clutch, false, 'C', clutch_init_reading));
 
   Joystick.send_now();
 }
